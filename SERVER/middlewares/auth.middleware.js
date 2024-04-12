@@ -54,6 +54,7 @@ exports.isStudent=async(req,res)=>{
                 message:"this is a protected route for students only"
             })
         }
+        next();
     } 
     catch (error) {
         return res.status(500).json({
@@ -73,6 +74,7 @@ exports.isInstructor=async(req,res)=>{
                 message:"this is a protected route for Instructor only"
             })
         }
+        next();
     } 
     catch (error) {
         return res.status(500).json({
@@ -91,6 +93,7 @@ exports.isAdmin=async(req,res)=>{
                 message:"this is a protected route for Admin only"
             })
         }
+        next();
     } 
     catch (error) {
         return res.status(500).json({

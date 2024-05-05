@@ -1,29 +1,51 @@
-const Course=require('../models/Course.model')
-const Tag=require('../models/Tags.model')
-const User= require('../models/User.model')
-const {uploadImageToCloudinary}=require('../utils/imageUploader')
+const Course=require('../models/Course.model');
+const Category=require('../models/Category.model');
+const User= require('../models/User.model');
+const {uploadImageToCloudinary}=require('../utils/imageUploader');
+
 require('dotenv').config()
 
 
-// create course handler
+// Function to create a new course
 exports.createCourse=async(req,res)=>{
     try {
-        //fetch data from req body
-        const {courseName,courseDescription,whatYouWillLearn,price,tag}=req.body;
-        //get thubnail
+       // Get user ID from request object
+       const userId = req.user.id
+
+        // Get all required fields from request body
+        let {
+            courseName,
+            courseDescription,
+            whatYouWillLearn,
+            price,
+            tag,
+            category,
+            status,
+            instructions,
+        }=req.body;
+      // Get thumbnail image from request files
         const thumbnail= req.files.thumbnailImage;
 
-        //validation
+        // Check if any of the required fields are missing
 
-        if(!courseDescription || !courseName || !thumbnail || !price || !tag || !whatYouWillLearn){
+        if(!courseDescription || 
+            !courseName || 
+            !thumbnail ||
+            !price || 
+            !tag ||
+            !whatYouWillLearn ||
+            !category
+            ){
             return res.status(400).json({
                 success: false,
-                message:"All fileds arerequired"
+                message:"All Fields are Mandatory"
             })
         }
+        if (!status || status === undefined) {
+			status = "Draft";
+		}
 
-        //check for instructer
-        const userId=req.user.id;
+       // Check if the user is an instructor
         const instructerDetails= await User.findById(userId)
         console.log(instructerDetails);
         //TODO => verify that userId  and  instructerDetails._id are same or different
@@ -36,33 +58,36 @@ exports.createCourse=async(req,res)=>{
         }
 
         //check given tag valid or not
-        const tagDetails= await Tag.findById(tag);
+        const categoryDetails= await Category.findById(tag);
 
-        if(!tagDetails){
+        if(!categoryDetails){
             return res.status(404).json({
                  success:false,
-            message:"Tag Details not found",
+            message:"Tag Details not foundCategory Details Not Found",
             })
         }
 
-        //upload to cloudinary 
+        // Upload the Thumbnail to Cloudinary
         const thumbnailImage=await uploadImageToCloudinary(thumbnail,process.env.FOLDER_NAME)
 
 
-        //create an entry for new course
+        // Create a new course with the given details
 
         const newCourse=await Course.create({
             courseName,
             courseDescription,
             instructor:instructerDetails._id,
-            whatYouWillLearn,
+            whatYouWillLearn:whatYouWillLearn,
             price,
-            tag:tagDetails._id,
+            tag:tag,
+            category: categoryDetails._id,
             thumbnail:thumbnailImage.secure_url,
+            status: status,
+			instructions: instructions,
         });
         
 
-        //add the new course to the userschema
+		// Add the new course to the User Schema of the Instructor
         await User.findByIdAndUpdate(
             {_id:instructerDetails._id},
             {
@@ -76,8 +101,8 @@ exports.createCourse=async(req,res)=>{
 
         //update the Tags ka schema
         //todo hw✍🏻✍🏻
-        await Tag.findByIdAndUpdate(
-            {_id:tagDetails._id},
+        await Category.findByIdAndUpdate(
+            {_id:category},
             {
                 $push:{
                     course:newCourse._id,
@@ -88,7 +113,7 @@ exports.createCourse=async(req,res)=>{
         )
 
 
-        //return res
+       	// Return the new course and a success message
         return res.status(200).json({
             success: true,
             message:"course created successfully",
@@ -112,7 +137,7 @@ exports.createCourse=async(req,res)=>{
 
 exports.showAllCourses=async(req,res)=>{
     try {
-        //TOdo//change the below statement
+       
         const allCourses= await Course.find({},{
             courseName:true,
             price:true,
@@ -134,7 +159,7 @@ exports.showAllCourses=async(req,res)=>{
         console.log(error);
         return res.status(500).json({
             success:false,
-            message:"failed to get all courses",
+            message: `Can't Fetch Course Data`,
             error:error.message
         })
     }

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const mailSender = require('../utils/mailSender');
+const emailTemplate = require("../mail/templates/emailVerificationTemplate");
 
 const OTPSchema = new mongoose.Schema({
     email:{
@@ -13,7 +14,7 @@ const OTPSchema = new mongoose.Schema({
     createdAt:{
         type:Date,
         default:Date.now(),
-        expires:5*60,
+        expires:60*5,   // The document will be automatically deleted after 5 minutes of its creation time
     },
 })
 
@@ -21,17 +22,26 @@ const OTPSchema = new mongoose.Schema({
 // to send  emails
 async function sendVerificationEmail(email,otp){
     try {
-        const mailResponse=await mailSender(email,"verification email from StudyNotion",otp)
-        console.log("email send successfully" ,mailResponse);
+        const mailResponse=await mailSender(email,
+            "verification email from StudyNotion",
+            emailTemplate(otp));
+
+            console.log("Email sent successfully: ", mailResponse.response);
     } catch (error) {
         console.log("error  occured while sending email",error);
         throw error;
     }
 }
-
+// Define a post-save hook to send email after the document has been saved
 OTPSchema.pre("save",async function(next){
-    await sendVerificationEmail(this.email,this.otp);
+    console.log("New document saved to database");
+
+    // Only send an email when a new document is created
+    if(this.isNew){
+        await sendVerificationEmail(this.email,this.otp);
+    }
+    
     next();
-})
+});
 
 module.exports=mongoose.model("OTP",OTPSchema)

@@ -7,40 +7,41 @@ const bcrypt= require('bcrypt')
 exports.resetPasswordToken= async(req,res)=>{
     try {
         //get email from req body
-    const {email}=req.body;
+    const {email}=req.body.email;
 
     //check user  for this email, email validation
     const user = await User.findOne({email:email});
     if(!user){
         return res.status(403).json({
             success: false,
-            message:"your email is not registered with us"
+            message:`This Email: ${email} is not Registered With Us Enter a Valid Email `
         });
     }
     //generate token
-    const token= crypto.randomUUID()
+    const token= crypto.randomBytes(20).toString("hex");
     // update user by adding token and expiration time
     const updatedDetailes= await User.findOneAndUpdate (
         {email:email},
         {
             token:token,
-            resetPasswordExpires:Date.now()+5*60*1000,
+            resetPasswordExpires:Date.now() + 3600000,
         },
-        {new: true}
-
+        {new: true},
+        
     )
+    console.log("Details",updatedDetailes);
     //create url 
      const url=`http//localhost:3000/update-password/${token}`
     // send mail containing urll
     await mailSender(
         email,
         "password Reset Link",
-        `password Reset Link : ${url}`
+        `Your Link for email verification is ${url}. Please click this url to reset your password.`
     )
     // return Response
     return res.status(200).json({
         success: true,
-        message:"email send successfully , please check email and change password "
+        message:"Email Sent Successfully, Please Check Your Email to Continue Further"
     });
 
     } 
@@ -48,7 +49,8 @@ exports.resetPasswordToken= async(req,res)=>{
         console.log(error);
         return res.status(500).json({
             success: false,
-            message:"Somethin went wrong while sending reset password mail "
+            message:`Some Error in Sending the Reset Message`,
+            error:error.message,
         })
     }
  
@@ -64,7 +66,7 @@ exports.resetPassword=async(req,res)=>{
      if(password !== confirmPassword){
          return res.status(403).json({
              success: false,
-             message:"password  does not matching"
+             message: "Password and Confirm Password Does not Match"
          });
      }
      //get userdetails from db using token
@@ -78,10 +80,10 @@ exports.resetPassword=async(req,res)=>{
          })
      }
      //token time check
-     if(userdetails.resetPasswordExpires < Date.now()){
+     if(userdetails.resetPasswordExpires > Date.now()){
          return res.status(403).json({
              success: false,
-             message:"Token is expired, please regenerate your token "
+             message: `Token is Expired, Please Regenerate Your Token`
          })
      }
      // hash password
@@ -96,14 +98,15 @@ exports.resetPassword=async(req,res)=>{
  
      return res.status(200).json({
          success: true,
-         message:"password reset successfull"
+         message:`Password Reset Successful`
      });
    }
     catch (error) {
     console.log(error);
     return res.status(500).json({
         success: false,
-        message:"somethging went while rsesetting password"
+        message:`Some Error in Updating the Password`,
+        error:error.message
     });
    }
 

@@ -26,7 +26,8 @@ exports.updateProfile=async(req,res)=>{
 
         profileDetails.gender=gender,
 
-        profileDetails.contactNumber=contactNumber,
+        profileDetails.contactNumber=contactNumber;
+        //save the updated profile
         await profileDetails.save();
 
         //return response
@@ -51,11 +52,11 @@ exports.deleteAccount=async(req,res)=>{
         //get Id
         const id = req.user.id;
         //validation
-        const userDetails= await User.findById(id);
+        const userDetails= await User.findById({_id:id});
         if(!userDetails){
             return res.status(400).json({
                 success:false,
-                message:"user not found",
+                message:"User not found",
 
             })
         }
@@ -88,12 +89,15 @@ exports.getAllUserDetails=async(req,res)=>{
         //get ID
         const id=req.user.id
         //validation and get user details
-        const userDetails=await User.findById(id).populate("additionalDetails").exec();
+        const userDetails=await User.findById(id)
+                   .populate("additionalDetails")
+                   .exec();
 
         //return response
         return res.status(200).json({
             success:true,
             message:"user data fetched successfully",
+            data:userDetails,
         });
 
 

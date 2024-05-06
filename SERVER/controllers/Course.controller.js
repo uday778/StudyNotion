@@ -2,6 +2,7 @@ const Course=require('../models/Course.model');
 const Category=require('../models/Category.model');
 const User= require('../models/User.model');
 const {uploadImageToCloudinary}=require('../utils/imageUploader');
+const RatingAndReview=require("../models/RatingAndReviews.model")
 
 require('dotenv').config()
 
@@ -58,12 +59,12 @@ exports.createCourse=async(req,res)=>{
         }
 
         //check given tag valid or not
-        const categoryDetails= await Category.findById(tag);
+        const categoryDetails= await Category.findById(category);
 
         if(!categoryDetails){
             return res.status(404).json({
                  success:false,
-            message:"Tag Details not foundCategory Details Not Found",
+            message:"Tag Details not found Category Details Not Found",
             })
         }
 
@@ -179,14 +180,14 @@ exports.getCourseDetails=async(req,res)=>{
             }
         )
         .populate("category")
-        .populate("ratingAndreviews")
-        .populate(
-            {
-                path:"courseContent",
-                populate:{
-                    path:"subSection"
-                }
-            })
+        // .populate("RatingAndreviews")
+        .populate("courseContent.subSection")
+            // {
+            //     path:"courseContent",
+            //     populate:{
+            //         path:"subSection"
+            //     }
+            // })
             .exec();
 
     //validation

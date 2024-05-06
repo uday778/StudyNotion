@@ -1,7 +1,7 @@
 const { instance } = require("../config/razorpay");
 const Course = require("../models/Course.model");
 const User = require("../models/User.model");
-const { courseEnrollmentEmail } = require("../utils/templates/courseEnrollmentEmail");
+const { courseEnrollmentEmail } = require("../mail/templates/courseEnrollmentEmail");
 const mailSender = require("../utils/mailSender");
 const mongoose = require("mongoose");
 

@@ -92,7 +92,7 @@ exports.signUp=async(req,res)=>{
         otp,
     }=req.body;
     //validate data
-    if(!firstName || !lastName || !email || !password || !confirmPassword || !otp || !contactNumber ) {
+    if(!firstName || !lastName || !email || !password || !confirmPassword || !otp  ) {
         return res.status(403).json({
             success:false,
             message:'all fields are required',
@@ -123,7 +123,7 @@ exports.signUp=async(req,res)=>{
         //OTP not Found
         return res.status(400).json({
             success:false,
-            message:"OTP  Found"
+            message:"OTP Is  Not  found"
         })
     }
     else if(otp !==recentOtp[0].otp){
@@ -182,9 +182,9 @@ exports.signUp=async(req,res)=>{
 exports.login=async(req,res)=>{
     try {
         //get data from req body
-        const {email,passowrd}=req.body;
+        const {email,password}=req.body;
         //validation of data
-        if(!email || !passowrd){
+        if(!email || !password){
             return res.status(403).json({
                 success:false,
                 message:" all fileds are required please try again"
@@ -203,7 +203,7 @@ exports.login=async(req,res)=>{
         }
    // Generate JWT token and Compare Password
 
-        if(await bcrypt.compare(passowrd,user.password)) {
+        if(await bcrypt.compare(password,user.password)) {
             const payload= {
                 email:user.email,
                 id:user._id,

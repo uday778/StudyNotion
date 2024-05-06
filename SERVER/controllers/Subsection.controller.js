@@ -1,6 +1,6 @@
 const SubSection = require("../models/SubSection.model");
 const Section = require("../models/Section.model");
-const uploadImageToCloudinary = require("../utils/imageUploader")
+const {uploadImageToCloudinary} = require("../utils/imageUploader")
 
 
 // Create a new sub-section for a given section
@@ -22,7 +22,7 @@ exports.createSubSection = async (req, res) => {
             })
         }
         //upload video to cloudinary
-        const uploadvideo = await uploadImageToCloudinary(video, process.env.FOLDER_NAME)
+        const uploadvideo = await uploadImageToCloudinary(video, process.env.FOLDER_NAME);
         //create subsection
         const SubSectionDetails = await SubSection.create({
             title: title,
@@ -33,13 +33,9 @@ exports.createSubSection = async (req, res) => {
         // Update the corresponding section with the newly created sub-section
         const updatedSection = await Section.findByIdAndUpdate(
             { _id: sectionId },
-            {
-                $push: {
-                    subsection: SubSectionDetails._id,
-                }
-            },
+            { $push: { subSection: SubSectionDetails._id } },
             { new: true }
-        ).populate("subSection")
+          ).populate("subSection")
 
 
         // Return the updated section in the response

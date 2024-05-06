@@ -25,8 +25,9 @@ const userSchema = new mongoose.Schema({
     // Define the role field with type String and enum values of "Admin", "Student", or "Visitor"
     accountType: {
         type: String,
-        enum: ["Admin", "Student", "Instructor"],
         required: true,
+        enum: ["Admin", "Student", "Instructor"],
+       
     },
     active:{
         type: Boolean,
